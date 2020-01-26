@@ -31,7 +31,7 @@ const getCache = async function(key, opts = {}) {
     const cache = caches[i];
     try {
       if (cache === 'memory') data = getFromMemory(key, this._mem);
-      if (cache === 'file') data = getFromFile(key, opts);
+      if (cache === 'file') data = await getFromFile(key, opts);
       break; 
     } catch (e) {
       // There was an error - allow the next method to be tried
