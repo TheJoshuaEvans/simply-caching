@@ -21,16 +21,6 @@ module.exports = {
     /**
      * Default cache order when getting cached data
      */
-    defaultCaches: [ 'memory', 'file' ],
-
-    /**
-     * If the system should save to memory by default
-     */
-    saveToMemory: true,
-
-    /**
-     * If the system should save to file by default
-     */
-    saveToFile: true
+    defaultCaches: [ 'memory', 'file' ]
   }
 };

@@ -23,8 +23,6 @@ class SimplyCaching {
    * 
    * @param {object} opts Options with the following fields:
    * - `useStaticMemory`: Setting this to true uses the static memory cache
-   * - `saveToMemory`: set to `true` to save cache to memory
-   * - `saveToFile`: set to `true` to save cache to the file system
    * - `preventOverwrite`: Setting this to true prevents memory from being overwritten
    * - `root`: The root directory to use when storing data to the local file system
    * - `caches`: Array of caches to try and get data from. Currently supports "memory" and "file"

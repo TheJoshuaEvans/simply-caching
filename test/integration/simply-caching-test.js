@@ -49,7 +49,6 @@ describe('SimplyCaching', function() {
     data.random = Math.random();
 
     const opts = {
-      saveToMemory: true,
       caches: [ 'memory' ]
     };
     const cache = new SimplyCaching(opts);
@@ -63,8 +62,6 @@ describe('SimplyCaching', function() {
     data.random = Math.random();
 
     const opts = {
-      saveToMemory: false,
-      saveToFile: true,
       caches: [ 'file' ]
     };
     const cache = new SimplyCaching(opts);
@@ -79,8 +76,6 @@ describe('SimplyCaching', function() {
     data.random = Math.random();
 
     const opts = {
-      saveToFile: true,
-      saveToMemory: true,
       mutable: true,
       caches: [ 'memory' ]
     };
@@ -96,7 +91,6 @@ describe('SimplyCaching', function() {
 
   it('should use nonstatic memory by default', async () => {
     const opts = {
-      saveToMemory: true,
       caches: [ 'memory' ]
     };
     const cache1 = new SimplyCaching(opts);
@@ -114,7 +108,6 @@ describe('SimplyCaching', function() {
   it('should be able to use static memory', async () => {
     const opts = {
       useStaticMemory: true,
-      saveToMemory: true,
       caches: [ 'memory' ]
     };
     const cache1 = new SimplyCaching(opts);
@@ -127,8 +120,6 @@ describe('SimplyCaching', function() {
 
   it('should be able to clear cache in default mode', async () => {
     const opts = {
-      saveToFile: true,
-      saveToMemory: true,
       caches: [ 'memory', 'file' ]
     };
     const cache = new SimplyCaching(opts);
@@ -170,6 +161,17 @@ describe('SimplyCaching', function() {
     } catch (e) {
       assert.ok(e instanceof CacheError);
     }
+  });
+
+  it('should be able to get from cache if earlier cache is missing key', async () => {
+    const fileOnlyCache = new SimplyCaching({caches: ['file']});
+    const memoryAndFileCache = new SimplyCaching({ caching: ['memory', 'file'] });
+    const fileOnlyData = { fileOnly: 'data' };
+    await fileOnlyCache.setCache('fileOnlyTesting', { fileOnly: 'data' });
+
+    const result = await memoryAndFileCache.getCache('fileOnlyTesting');
+
+    assert.ok(isEqual(result, fileOnlyData));
   });
 
   after(async () => {
