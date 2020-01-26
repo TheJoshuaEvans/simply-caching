@@ -46,7 +46,11 @@ const clearFile = async (key, opts = {}) => {
     }
 
     const fullLocation = path.join(root, key);
-    await unlink(fullLocation);
+    try {
+      await unlink(fullLocation);
+    } catch (e) {
+      // Allow failure
+    }
     return;
   }
 
@@ -63,7 +67,11 @@ const clearFile = async (key, opts = {}) => {
     }
 
     // The file is not a directory, unlink it
-    await unlink(file.name);
+    try {
+      await unlink(file.name);
+    } catch (e) {
+      // Allow failure
+    }
   }
 };
 

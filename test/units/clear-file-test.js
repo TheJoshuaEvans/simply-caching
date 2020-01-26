@@ -129,6 +129,10 @@ describe('clear-file', function() {
     }
   });
 
+  it('should not throw an error when clearing non-existent cache', async () => {
+    await clearFile('notAPath');
+  });
+
   after(async () => {
     try {
       await unlink(path.join(defaultRoot, 'singleTest.json'));
