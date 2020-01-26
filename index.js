@@ -2,6 +2,8 @@
 
 const merge = require('lodash.merge');
 
+const errors = require('./src/utils/errors.js');
+
 // Control functions
 const setCache = require('./src/control/set-cache.js');
 const getCache = require('./src/control/get-cache.js');
@@ -50,5 +52,7 @@ class SimplyCaching {
   getCache = getCache.bind(this);
   clearCache = clearCache.bind(this);
 }
+
+SimplyCaching.errors = errors;
 
 module.exports = SimplyCaching;

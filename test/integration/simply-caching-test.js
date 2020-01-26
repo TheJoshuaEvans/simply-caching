@@ -9,11 +9,12 @@ const isEqual = require('lodash.isequal');
 const SimplyCaching = require('../../index.js');
 
 const config = require('../../src/utils/config.js')();
-const { CacheError } = require('../../src/utils/errors.js');
+const errors = require('../../src/utils/errors.js');
 
 const unlink = util.promisify(fs.unlink).bind(fs);
 
 const { defaultRoot } = config.process;
+const { CacheError } = errors;
 
 describe('SimplyCaching', function() {
   const data = {
@@ -29,6 +30,13 @@ describe('SimplyCaching', function() {
     ],
     random: Math.random()
   };
+
+  it('should be able to get errors from class', async () => {
+    for (const error in errors) {
+      assert.equal(SimplyCaching.errors[error], errors[error]);
+    }
+  });
+
   it('should be able to store and retrieve cache with default settings', async () => {
     const cache = new SimplyCaching();
 

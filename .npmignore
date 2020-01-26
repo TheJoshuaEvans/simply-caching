@@ -1,0 +1,8 @@
+.cache
+.vscode
+test
+.eslintrc.js
+.gitignore
+.simplycachingrc.js
+testing.js
+*.tgz
