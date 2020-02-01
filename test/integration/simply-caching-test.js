@@ -11,9 +11,10 @@ const SimplyCaching = require('../../index.js');
 const config = require('../../src/utils/config.js')();
 const errors = require('../../src/utils/errors.js');
 
+const access = util.promisify(fs.access).bind(fs);
 const unlink = util.promisify(fs.unlink).bind(fs);
 
-const { defaultRoot } = config.process;
+const defaultRoot = config.file.root;
 const { CacheError } = errors;
 
 describe('SimplyCaching', function() {
@@ -174,36 +175,197 @@ describe('SimplyCaching', function() {
     assert.ok(isEqual(result, fileOnlyData));
   });
 
+  it('should correctly handle general.caches config', async () => {
+    const memoryCache = new SimplyCaching({general: {caches: ['memory']}});
+    const fileCache = new SimplyCaching({general: {caches: ['file']}});
+    const memoryFileCache = new SimplyCaching({general: {caches: ['memory', 'file']}});
+
+    const data = {some: 'data'};
+    await memoryCache.setCache('memoryCacheTest', data);
+    assert.ok(isEqual(memoryCache._mem.memoryCacheTest, data));
+    try {
+      await access(path.join(defaultRoot, 'memoryCacheTest.json'));
+      assert.fail('should have thrown an error');
+    } catch (e) {
+      assert.equal(e.code, 'ENOENT');
+    }
+
+    await fileCache.setCache('fileCacheTest', data);
+    assert.ok(typeof fileCache._mem.fileCacheTest === 'undefined');
+    await access(path.join(defaultRoot, 'fileCacheTest.json'));
+
+    await memoryFileCache.setCache('memoryFileCacheTest', data);
+    assert.ok(isEqual(memoryFileCache._mem.memoryFileCacheTest, data));
+    await access(path.join(defaultRoot, 'memoryFileCacheTest.json'));
+  });
+
+  it('should correctly handle depreciated caches config', async () => { // TODO: Delete with V2.0
+    // Test for depreciated config
+    try { await unlink(path.join(defaultRoot, 'fileCacheTest.json')); } catch(e) { /**/ }
+    try { await unlink(path.join(defaultRoot, 'memoryFileCacheTest.json')); } catch(e) { /**/ }
+    const memoryCache = new SimplyCaching({caches: ['memory']});
+    const fileCache = new SimplyCaching({caches: ['file']});
+    const memoryFileCache = new SimplyCaching({caches: ['memory', 'file']});
+
+    const data = {some: 'data'};
+    await memoryCache.setCache('memoryCacheTest', data);
+    assert.ok(isEqual(memoryCache._mem.memoryCacheTest, data));
+    try {
+      await access(path.join(defaultRoot, 'memoryCacheTest.json'));
+      assert.fail('should have thrown an error');
+    } catch (e) {
+      assert.equal(e.code, 'ENOENT');
+    }
+
+    await fileCache.setCache('fileCacheTest', data);
+    assert.ok(typeof fileCache._mem.fileCacheTest === 'undefined');
+    await access(path.join(defaultRoot, 'fileCacheTest.json'));
+
+    await memoryFileCache.setCache('memoryFileCacheTest', data);
+    assert.ok(isEqual(memoryFileCache._mem.memoryFileCacheTest, data));
+    await access(path.join(defaultRoot, 'memoryFileCacheTest.json'));
+  });
+
+  it('should correctly handle general.overwrite config', async () => {
+    const preventOverwriteCache = new SimplyCaching({general: {overwrite: false}});
+    const overwriteCache = new SimplyCaching({general: {overwrite: true}});
+
+    const data = { some: 'data' };
+    await preventOverwriteCache.setCache('preventOverwriteTrueTest', data);
+    try {
+      await preventOverwriteCache.setCache('preventOverwriteTrueTest', data);
+      assert.fail('should have thrown an error');
+    } catch (e) {
+      assert.ok(e instanceof CacheError);
+    }
+
+    await overwriteCache.setCache('preventOverwriteFalseTest', data);
+    await overwriteCache.setCache('preventOverwriteFalseTest', { someOther: 'data' });
+    assert.ok(!isEqual(data, await overwriteCache.getCache('preventOverwriteFalseTest')));
+  });
+
+  it('should correctly handle depreciated preventOverwrite config', async () => { // TODO: Delete with V2.0
+    try { await unlink(path.join(defaultRoot, 'preventOverwriteFalseTest.json')); } catch(e) { /**/ }
+    try { await unlink(path.join(defaultRoot, 'preventOverwriteTrueTest.json')); } catch(e) { /**/ }
+    const preventOverwriteCache = new SimplyCaching({preventOverwrite: true});
+    const overwriteCache = new SimplyCaching({preventOverwrite: false});
+
+    const data = { some: 'data' };
+    await preventOverwriteCache.setCache('preventOverwriteTrueTest', data);
+    try {
+      await preventOverwriteCache.setCache('preventOverwriteTrueTest', data);
+      assert.fail('should have thrown an error');
+    } catch (e) {
+      assert.ok(e instanceof CacheError);
+    }
+
+    await overwriteCache.setCache('preventOverwriteFalseTest', data);
+    await overwriteCache.setCache('preventOverwriteFalseTest', { someOther: 'data' });
+    assert.ok(!isEqual(data, await overwriteCache.getCache('preventOverwriteFalseTest')));
+  });
+  
+  it('should correctly handle memory.static config', async () => {
+    const staticCache1 = new SimplyCaching({memory: {static: true}, general: {caches: ['memory']}});
+    const staticCache2 = new SimplyCaching({memory: {static: true}, general: {caches: ['memory']}});
+    const nonStaticCache1 = new SimplyCaching({memory: {static: false}, general: {caches: ['memory']}});
+    const nonStaticCache2 = new SimplyCaching({memory: {static: false}, general: {caches: ['memory']}});
+
+    const data = { some: 'data' };
+    await staticCache1.setCache('staticCacheTest', data);
+    const staticCachedData = await staticCache2.getCache('staticCacheTest');
+    assert.ok(isEqual(staticCachedData, data));
+
+    await nonStaticCache1.setCache('nonStaticCacheTest', data);
+    try {
+      await nonStaticCache2.getCache('nonStaticCacheTest');
+      assert.fail('should have thrown an error');
+    } catch (e) {
+      assert.ok(e instanceof CacheError);
+    }
+  });
+
+  it('should correctly handle depreciated useStaticMemory config', async () => { // TODO: Delete with V2.0
+    const staticCache1 = new SimplyCaching({useStaticMemory: true, general: {caches: ['memory']}});
+    const staticCache2 = new SimplyCaching({useStaticMemory: true, general: {caches: ['memory']}});
+    const nonStaticCache1 = new SimplyCaching({useStaticMemory: false, general: {caches: ['memory']}});
+    const nonStaticCache2 = new SimplyCaching({useStaticMemory: false, general: {caches: ['memory']}});
+
+    const data = { some: 'data' };
+    await staticCache1.setCache('staticCacheTest', data);
+    const staticCachedData = await staticCache2.getCache('staticCacheTest');
+    assert.ok(isEqual(staticCachedData, data));
+
+    await nonStaticCache1.setCache('nonStaticCacheTest', data);
+    try {
+      await nonStaticCache2.getCache('nonStaticCacheTest');
+      assert.fail('should have thrown an error');
+    } catch (e) {
+      assert.ok(e instanceof CacheError);
+    }
+  });
+
+  it('should correctly handle memory.mutable config', async () => {
+    const mutableCache = new SimplyCaching({memory: {mutable: true}, general: {caches: ['memory']}});
+    const immutableCache = new SimplyCaching({memory: {mutable: false}, general: {caches: ['memory']}});
+
+    const mutableData = { isMutable: false };
+    await mutableCache.setCache('mutableTest', mutableData);
+    mutableData.isMutable = true;
+    const cachedMutable = await mutableCache.getCache('mutableTest');
+    assert.equal(cachedMutable.isMutable, true);
+
+    const immutableData = { isMutable: false };
+    await immutableCache.setCache('immutableTest', immutableData);
+    immutableData.isMutable = true;
+    const cachedImmutable = await immutableCache.getCache('immutableTest');
+    assert.equal(cachedImmutable.isMutable, false);
+  });
+
+  it('should correctly handle depreciated mutable config', async () => { // TODO: Delete with V2.0
+    const mutableCache = new SimplyCaching({memory: {mutable: true}, general: {caches: ['memory']}});
+    const immutableCache = new SimplyCaching({memory: {mutable: false}, general: {caches: ['memory']}});
+
+    const mutableData = { isMutable: false };
+    await mutableCache.setCache('mutableTest', mutableData);
+    mutableData.isMutable = true;
+    const cachedMutable = await mutableCache.getCache('mutableTest');
+    assert.equal(cachedMutable.isMutable, true);
+
+    const immutableData = { isMutable: false };
+    await immutableCache.setCache('immutableTest', immutableData);
+    immutableData.isMutable = true;
+    const cachedImmutable = await immutableCache.getCache('immutableTest');
+    assert.equal(cachedImmutable.isMutable, false);
+  });
+
+  it('should correctly handle file.root config', async () => {
+    const customRootCache = new SimplyCaching({file: {root: path.join(defaultRoot, 'testDir')}, general: {caches: ['file']}});
+
+    const data = { some: 'data' };
+    await customRootCache.setCache('customRootTest', data);
+    assert.ok(isEqual(require(path.join(defaultRoot, 'testDir', 'customRootTest.json')), data));
+  });
+
+  it('should correctly handle depreciated root config', async () => { // TODO: Delete with V2.0
+    try { await unlink(path.join(defaultRoot, 'testDir', 'customRootTest.json')); } catch(e) { /**/ }
+    const customRootCache = new SimplyCaching({root: path.join(defaultRoot, 'testDir'), general: {caches: ['file']}});
+
+    const data = { some: 'data' };
+    await customRootCache.setCache('customRootTest', data);
+    assert.ok(isEqual(require(path.join(defaultRoot, 'testDir', 'customRootTest.json')), data));
+  });
+
   after(async () => {
-    try {
-      await unlink(path.join(defaultRoot, 'clearMultipleTesting1.json'));
-    } catch(e) {
-      // Allow failure - it means the file doesn't exist
-    }
-    try {
-      await unlink(path.join(defaultRoot, 'clearMultipleTesting2.json'));
-    } catch(e) {
-      // Allow failure
-    }
-    try {
-      await unlink(path.join(defaultRoot, 'clearMultipleTesting3.json'));
-    } catch(e) {
-      // Allow failure
-    }
-    try {
-      await unlink(path.join(defaultRoot, 'clearSingleTesting.json'));
-    } catch(e) {
-      // Allow failure
-    }
-    try {
-      await unlink(path.join(defaultRoot, 'fileTest.json'));
-    } catch(e) {
-      // Allow failure
-    }
-    try {
-      await unlink(path.join(defaultRoot, 'memoryAndFileTest.json'));
-    } catch(e) {
-      // Allow failure
-    }
+    try { await unlink(path.join(defaultRoot, 'clearMultipleTesting1.json')); } catch(e) { /**/ }
+    try { await unlink(path.join(defaultRoot, 'clearMultipleTesting2.json')); } catch(e) { /**/ }
+    try { await unlink(path.join(defaultRoot, 'clearMultipleTesting3.json')); } catch(e) { /**/ }
+    try { await unlink(path.join(defaultRoot, 'clearSingleTesting.json')); } catch(e) { /**/ }
+    try { await unlink(path.join(defaultRoot, 'fileTest.json')); } catch(e) { /**/ }
+    try { await unlink(path.join(defaultRoot, 'memoryAndFileTest.json')); } catch(e) { /**/ }
+    try { await unlink(path.join(defaultRoot, 'preventOverwriteFalseTest.json')); } catch(e) { /**/ }
+    try { await unlink(path.join(defaultRoot, 'preventOverwriteTrueTest.json')); } catch(e) { /**/ }
+    try { await unlink(path.join(defaultRoot, 'fileCacheTest.json')); } catch(e) { /**/ }
+    try { await unlink(path.join(defaultRoot, 'memoryFileCacheTest.json')); } catch(e) { /**/ }
+    try { await unlink(path.join(defaultRoot, 'testDir', 'customRootTest.json')); } catch(e) { /**/ }
   });
 });

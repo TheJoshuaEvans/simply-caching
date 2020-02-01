@@ -4,14 +4,14 @@ const path = require('path');
 const fs = require('fs');
 const util = require('util');
 
+const mergeOpts = require('../utils/merge-opts.js');
+
 const config = require('../utils/config.js')();
 const processRoot = require('../utils/process-root.js');
 
 const { ValidationError } = require('../utils/errors.js');
 
 const unlink = util.promisify(fs.unlink).bind(fs);
-
-const { defaultRoot } = config.process;
 
 /**
  * Reads a directory and returns Dirent objects with full file paths for names
@@ -32,13 +32,15 @@ const readdir = async (dir) => {
  * 
  * @param {string} key The key to delete from the file cache
  * @param {object} [opts] Optional configurations for the function:
- * - `root`: File path to use for the root cache folder. If the provided value is a relative path, the path will
- *         start from the current working directly
+ * - `file.root`: File path to use for the root cache folder. If the provided value is a relative path, the path will
+ *                start from the current working directly
  */
 const clearFile = async (key, opts = {}) => {
   if (key !== '' && !key) throw new ValidationError('getFromFile missing parameter: key');
 
-  const root = processRoot(opts.root, defaultRoot);
+  opts = mergeOpts(opts, config);
+
+  const root = processRoot(opts.file.root, config.file.root);
   if(key) {
     // Append .json to the key
     if (key.indexOf('.json') !== key.length - 5) {

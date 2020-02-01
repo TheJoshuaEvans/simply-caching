@@ -14,7 +14,7 @@ const writeFile = util.promisify(fs.writeFile).bind(fs);
 const unlink = util.promisify(fs.unlink).bind(fs);
 const access = util.promisify(fs.access).bind(fs);
 
-const { defaultRoot } = config.process;
+const defaultRoot = config.file.root;
 
 describe('clear-file', function() {
   const data = {
@@ -105,7 +105,9 @@ describe('clear-file', function() {
     await writeFile(path.join(defaultRoot, 'customPath', 'multiTest6.json'), JSON.stringify(data));
 
     const opts = {
-      root: path.join(defaultRoot, 'customPath')
+      file: {
+        root: path.join(defaultRoot, 'customPath')
+      }
     };
     await clearFile('', opts);
     

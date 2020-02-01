@@ -1,6 +1,6 @@
 'use strict';
 
-const merge = require('lodash.merge');
+const mergeOpts = require('./merge-opts.js');
 
 const simplyCachingConfig = require('../../.simplycachingrc.default.js');
 
@@ -58,13 +58,13 @@ module.exports = (configObject) => {
     // No secret config
   }
 
-  merge(simplyCachingConfig, secretConfig, configObject);
+  const mergedConfig = mergeOpts(configObject, secretConfig, simplyCachingConfig);
 
   if (!checkForUndefinedRecursive(this)) {
     throw new Error('Undefined configurations detected');
   }
 
-  singletonConfig = simplyCachingConfig;
+  singletonConfig = mergedConfig;
 
-  return simplyCachingConfig;
+  return mergedConfig;
 };

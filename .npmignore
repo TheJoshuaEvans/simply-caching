@@ -6,3 +6,5 @@ test
 .simplycachingrc.js
 testing.js
 *.tgz
+coverage
+.nyc_output

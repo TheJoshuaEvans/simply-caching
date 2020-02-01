@@ -10,9 +10,9 @@ describe('config', () => {
   });
 
   it('should not create a 2nd new config object', () => {
-    const newConfig = Config({ cacheRoot: 1 });
+    const newConfig = Config({ general: {overwrite: false} });
 
-    assert.notEqual(newConfig.process.cacheRoot, 1);
+    assert.notEqual(newConfig.general.overwrite, false);
   });
 
   after(() => {

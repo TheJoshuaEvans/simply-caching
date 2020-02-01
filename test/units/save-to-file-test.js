@@ -34,7 +34,7 @@ describe('save-to-file', function() {
     }
   });
 
-  const testCacheDirectory = config.process.defaultRoot;
+  const testCacheDirectory = config.file.root;
   const data = {
     string: 'string',
     number: 123,
@@ -56,7 +56,7 @@ describe('save-to-file', function() {
 
   it('should not overwrite with protections enabled', async () => {
     try {
-      await saveToFile('saveToFileTestingObject', {test:'data'}, {preventOverwrite:true});
+      await saveToFile('saveToFileTestingObject', {test:'data'}, {general: {overwrite:false}});
       assert.fail('should have thrown an error');
     } catch(e) {
       assert.ok(e instanceof CacheError);
@@ -75,7 +75,9 @@ describe('save-to-file', function() {
   });
 
   const opts = {
-    root: path.join(testCacheDirectory, 'customPath')
+    file: {
+      root: path.join(testCacheDirectory, 'customPath')
+    }
   };
 
   it('should be able to change the directory', async () => {
@@ -87,7 +89,7 @@ describe('save-to-file', function() {
 
   it('should be able to change directory to a relative path', async () => {
     process.chdir(rootPath);
-    opts.root = path.join('.cache', 'customPath');
+    opts.file.root = path.join('.cache', 'customPath');
     await saveToFile('separateDirRelativeTest', data, opts);
 
     const savedData = require(path.join(testCacheDirectory, 'customPath', 'separateDirRelativeTest.json'));

@@ -4,6 +4,8 @@ const path = require('path');
 const fs = require('fs');
 const util = require('util');
 
+const mergeOpts = require('../utils/merge-opts.js');
+
 const config = require('../utils/config.js')();
 const processRoot = require('../utils/process-root.js');
 
@@ -13,23 +15,23 @@ const mkdir = util.promisify(fs.mkdir).bind(fs);
 const writeFile = util.promisify(fs.writeFile).bind(fs);
 const access = util.promisify(fs.access).bind(fs);
 
-const { defaultRoot } = config.process;
-
 /**
  * Saves data to a file. If the provided data is not a string, it will be converted into a string via JSON.stringify
  * 
  * @param {string} key Key to save the data under
  * @param {object} data The data to store. Can also be a string
  * @param {object} [opts] Optional configurations for the function:
- * - `root`: File path to use for the root cache folder. If the provided value is a relative path, the path will
+ * - `file.root`: File path to use for the root cache folder. If the provided value is a relative path, the path will
  *          start from the current working directly
- * - `preventOverwrite`: Setting this to true prevents memory from being overwritten
+ * - `general.overwrite`: Setting this to false prevents memory from being overwritten
  */
 const saveToFile = async (key, data, opts = {}) => {
   const missingParams = [];
   if (!key) missingParams.push('saveCache missing parameter: key');
   if (!data) missingParams.push('saveCache missing parameter: data');
   if (missingParams.length) throw new ValidationError(missingParams);
+
+  opts = mergeOpts(opts, config);
 
   // Convert data to string
   if (typeof data !== 'string') data = JSON.stringify(data);
@@ -39,10 +41,10 @@ const saveToFile = async (key, data, opts = {}) => {
     key = key + '.json';
   }
 
-  const fullLocation = path.join(processRoot(opts.root, defaultRoot), key);
+  const fullLocation = path.join(processRoot(opts.file.root, config.file.root), key);
 
   // Check for overwrite protection
-  if (opts.preventOverwrite) {
+  if (!opts.general.overwrite) {
     let cacheExists = false;
     try {
       await access(fullLocation);

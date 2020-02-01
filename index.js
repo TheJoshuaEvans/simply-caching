@@ -1,8 +1,8 @@
 'use strict';
 
-const merge = require('lodash.merge');
-
+const config = require('./src/utils/config.js')();
 const errors = require('./src/utils/errors.js');
+const mergeOpts = require('./src/utils/merge-opts.js');
 
 // Control functions
 const setCache = require('./src/control/set-cache.js');
@@ -21,28 +21,49 @@ class SimplyCaching {
   /**
    * Provide the constructor with default options that should be passed to all operations
    * 
-   * @param {object} opts Options with the following fields:
-   * - `useStaticMemory`: Setting this to true uses the static memory cache
-   * - `preventOverwrite`: Setting this to true prevents memory from being overwritten
-   * - `root`: The root directory to use when storing data to the local file system
-   * - `caches`: Array of caches to try and get data from. Currently supports "memory" and "file"
-   * - `mutable`: Setting this to true makes cache data mutable
+   * @param {object} opts See `.simplycachingrc.default.js` for possible values
    */
   constructor(opts = {}) {
-    this.opts = merge({}, this.opts, opts);
+    /**
+     * Options that were provided to the instance on construction. Defaults are defined in the .simplycachingrc.js files
+     */
+    this.opts = mergeOpts(opts, config);
 
-    if (opts.useStaticMemory) this._mem = mem;
+    (() => { // TODO: DELETE WITH V2
+      if (this.opts.useStaticMemory) {
+        console.warn('DEPRECATION WARNING: Configuration value `useStaticMemory` will be removed in version 2.0. Use `memory.static` instead');
+        this.opts.memory.static = this.opts.useStaticMemory;
+        delete this.opts.useStaticMemory;
+      }
+      if (this.opts.preventOverwrite) {
+        console.warn('DEPRECATION WARNING: Configuration value `preventOverwrite` will be removed in version 2.0. Use `general.overwrite` instead');
+        this.opts.general.overwrite = !this.opts.preventOverwrite;
+        delete this.opts.preventOverwrite;
+      }
+      if (this.opts.root) {
+        console.warn('DEPRECATION WARNING: Configuration value `root` will be removed in version 2.0. Use `file.root` instead');
+        this.opts.file.root = this.opts.root;
+        delete this.opts.root;
+      }
+      if (this.opts.caches) {
+        console.warn('DEPRECATION WARNING: Configuration value `caches` will be removed in version 2.0. Use `general.caches` instead');
+        this.opts.general.caches = this.opts.caches;
+        delete this.opts.caches;
+      }
+      if (this.opts.mutable) {
+        console.warn('DEPRECATION WARNING: Configuration value `mutable` will be removed in version 2.0. Use `memory.mutable` instead');
+        this.opts.memory.mutable = this.opts.mutable;
+        delete this.opts.mutable;
+      }
+    })();
+  
+    if (this.opts.memory.static) this._mem = mem;
 
     // Methods
     this.setCache = setCache.bind(this);
     this.getCache = getCache.bind(this);
     this.clearCache = clearCache.bind(this);
   }
-
-  /**
-   * Options that were provided to the instance on construction. Defaults are defined in the .simplycachingrc.js files
-   */
-  opts = require('./src/utils/config.js')().process;
 
   /**
    * @private

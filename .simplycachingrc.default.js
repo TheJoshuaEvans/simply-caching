@@ -5,22 +5,46 @@ const path = require('path');
 const rootPath = require('./root-path.js');
 
 /**
- * Default configuration file. Any values also present in the .simplycaching.js file will be overridden. All values
- * marked as `undefined` _must_ be defined in the .simplycaching.js file
+ * Default configuration options
  */
 module.exports = {
   /**
-   * General settings for the simply caching process
+   * General Configurations
    */
-  process: {
+  general: {
     /**
-     * Directory where the cache can be found
+     * The caches to use, in access order. Currently supported options are `memory` and `file`
      */
-    defaultRoot: path.join(rootPath, '.cache'),
+    caches: [ 'memory', 'file' ],
 
     /**
-     * Default cache order when getting cached data
+     * Overwrite keys with setCache
      */
-    defaultCaches: [ 'memory', 'file' ]
+    overwrite: true
+  },
+
+  /**
+   * Memory cache configurations
+   */
+  memory: {
+    /**
+     * Use a static memory cache, shared between cache instances
+     */
+    static: false,
+
+    /**
+     * Make the memory cache mutable
+     */
+    mutable: false
+  },
+
+  /**
+   * File cache configurations
+   */
+  file: {
+    /**
+     * The root directory to use when storing data. Default cache is contained in the module directory within `node_modules`
+     */
+    root: path.join(rootPath, '.cache')
   }
 };

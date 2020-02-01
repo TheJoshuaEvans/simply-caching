@@ -38,7 +38,7 @@ describe('save-to-memory', function() {
       test: 'value'
     };
     try {
-      await saveToMemory('test', 'anotherValue', mem, { preventOverwrite: true });
+      await saveToMemory('test', 'anotherValue', mem, {general: {overwrite: false}});
       assert.fail('should have thrown an error');
     } catch (e) {
       assert.ok(e instanceof CacheError);
@@ -63,7 +63,7 @@ describe('save-to-memory', function() {
     const data = {
       foo: 'foo'
     };
-    await saveToMemory('test', data, mem, {mutable: true});
+    await saveToMemory('test', data, mem, {memory: {mutable: true}});
 
     data.foo = 'bar';
     assert.equal(data.foo, 'bar');

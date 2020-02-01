@@ -1,6 +1,6 @@
 {
   "name": "simply-caching",
-  "version": "1.0.6",
+  "version": "1.1.0",
   "description": "Super simple in memory and file-based caching",
   "main": "index.js",
   "engines": {
@@ -10,8 +10,8 @@
     "lint": "eslint . --fix",
     "lint-no-fix": "eslint .",
     "clear-cache": "rm -rf ./cache",
-    "test": "mocha --recursive --verbose",
-    "test-quick": "mocha --recursive --quick --verbose",
+    "test": "mocha --recursive",
+    "coverage": "nyc --reporter=html mocha --recursive",
     "debug-mocha": "node --inspect-brk node_modules/.bin/mocha --recursive"
   },
   "repository": {
@@ -34,7 +34,8 @@
     "babel-eslint": "^10.0.3",
     "eslint": "^6.8.0",
     "eslint-plugin-babel": "^5.3.0",
-    "mocha": "^7.0.1"
+    "mocha": "^7.0.1",
+    "nyc": "^15.0.0"
   },
   "dependencies": {
     "lodash.clonedeep": "^4.5.0",

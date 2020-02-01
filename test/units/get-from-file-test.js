@@ -16,7 +16,7 @@ const writeFile = util.promisify(fs.writeFile).bind(fs);
 const unlink = util.promisify(fs.unlink).bind(fs);
 
 describe('get-from-file', function() {
-  const testCacheDirectory = config.process.defaultRoot;
+  const testCacheDirectory = config.file.root;
   const data = {
     string: 'string',
     number: 123,
@@ -67,7 +67,9 @@ describe('get-from-file', function() {
 
   it('should be able to set root correctly', async () => {
     const opts = {
-      root: path.join(testCacheDirectory, 'customPath')
+      file: {
+        root: path.join(testCacheDirectory, 'customPath')
+      }
     };
     const cachedData = await getFromFile('getCacheTest.json', opts);
     assert.ok(isEqual(cachedData, customPathData));
