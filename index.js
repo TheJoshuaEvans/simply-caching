@@ -32,10 +32,15 @@ class SimplyCaching {
     this.opts = merge({}, this.opts, opts);
 
     if (opts.useStaticMemory) this._mem = mem;
+
+    // Methods
+    this.setCache = setCache.bind(this);
+    this.getCache = getCache.bind(this);
+    this.clearCache = clearCache.bind(this);
   }
 
   /**
-   * Options that were provided to the instance on construction. Default are defined in the .simplycachingrc.js files
+   * Options that were provided to the instance on construction. Defaults are defined in the .simplycachingrc.js files
    */
   opts = require('./src/utils/config.js')().process;
 
@@ -44,11 +49,6 @@ class SimplyCaching {
    * The internal cache object used when saving data in-memory
    */
   _mem = {};
-
-  // Methods
-  setCache = setCache.bind(this);
-  getCache = getCache.bind(this);
-  clearCache = clearCache.bind(this);
 }
 
 SimplyCaching.errors = errors;

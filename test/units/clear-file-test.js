@@ -133,6 +133,20 @@ describe('clear-file', function() {
     await clearFile('notAPath');
   });
 
+  it('should clear files with subdirectories', async () => {
+    await mkdir(path.join(defaultRoot, 'testDir', 'testSubDir'), { recursive: true });
+    await writeFile(path.join(defaultRoot, 'testDir', 'testSubDir', 'testKey.json'), JSON.stringify(data));
+
+    await clearFile('testDir/testSubDir/testKey');
+
+    try {
+      await access(path.join(defaultRoot, 'testDir', 'testSubDir', 'testKey.json'));
+      assert.fail('should have thrown an error');
+    } catch (e) {
+      assert.equal(e.code, 'ENOENT');
+    }
+  });
+
   after(async () => {
     try {
       await unlink(path.join(defaultRoot, 'singleTest.json'));
@@ -166,6 +180,11 @@ describe('clear-file', function() {
     }
     try {
       await unlink(path.join(defaultRoot, 'customPath', 'multiTest6.json'));
+    } catch(e) {
+      // Allow failure
+    }
+    try {
+      await unlink(path.join(defaultRoot, 'testDir', 'testSubDir', 'testKey.json'));
     } catch(e) {
       // Allow failure
     }

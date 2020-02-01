@@ -94,6 +94,16 @@ describe('save-to-file', function() {
     assert.ok(isEqual(savedData, data));
   });
 
+  it('should be able to use subdirectories in key', async () => {
+    await saveToFile('testDir/testKey', data);
+    await saveToFile('testDir/testSubDir/testKey', data);
+
+    const savedData = require(path.join(testCacheDirectory, 'testDir', 'testKey.json'));
+    const savedSubData = require(path.join(testCacheDirectory, 'testDir', 'testSubDir', 'testKey.json'));
+    assert.ok(isEqual(savedData, data));
+    assert.ok(isEqual(savedSubData, data));
+  });
+
   after(async () => {
     process.chdir(originalCwd);
     const unlink = util.promisify(fs.unlink).bind(fs);
@@ -116,6 +126,16 @@ describe('save-to-file', function() {
     }
     try {
       await unlink(path.join(rootPath, '.cache', 'customPath', 'separateDirRelativeTest.json'));
+    } catch(e) {
+      // Allow failure
+    }
+    try {
+      await unlink(path.join(rootPath, '.cache', 'testDir', 'testKey.json'));
+    } catch(e) {
+      // Allow failure
+    }
+    try {
+      await unlink(path.join(rootPath, '.cache', 'testDir', 'testSubDir', 'testKey.json'));
     } catch(e) {
       // Allow failure
     }

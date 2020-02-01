@@ -3,6 +3,9 @@
   "version": "1.0.5",
   "description": "Super simple in memory and file-based caching",
   "main": "index.js",
+  "engines": {
+    "node": ">=12.13.0"
+  },
   "scripts": {
     "lint": "eslint . --fix",
     "lint-no-fix": "eslint .",

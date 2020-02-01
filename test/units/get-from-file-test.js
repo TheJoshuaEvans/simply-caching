@@ -34,6 +34,7 @@ describe('get-from-file', function() {
     await mkdir(path.join(testCacheDirectory, 'customPath'), {recursive: true});
     await writeFile(path.join(testCacheDirectory, 'getCacheTest.json'), JSON.stringify(data));
     await writeFile(path.join(testCacheDirectory, 'customPath', 'getCacheTest.json'), JSON.stringify(customPathData));
+    await writeFile(path.join(testCacheDirectory, 'testDir', 'testSubDir', 'testKey.json'), JSON.stringify(data));
   });
 
   it('should throw validation error with invalid parameters', async () => {
@@ -47,14 +48,19 @@ describe('get-from-file', function() {
 
   it('should throw cache error when getting invalid cache location', async () => {
     try {
-      await getFromFile('notacachelocation');
+      await getFromFile('notACacheLocation');
       assert.fail('should have thrown an error');
     } catch (e) {
       assert.ok(e instanceof CacheError);
     }
   });
 
-  it('should get cache object correctly', async () => {
+  it('should get cache object correctly without .json', async () => {
+    const cachedData = await getFromFile('getCacheTest');
+    assert.ok(isEqual(cachedData, data));
+  });
+
+  it('should get cache object correctly with .json', async () => {
     const cachedData = await getFromFile('getCacheTest.json');
     assert.ok(isEqual(cachedData, data));
   });
@@ -67,8 +73,14 @@ describe('get-from-file', function() {
     assert.ok(isEqual(cachedData, customPathData));
   });
 
+  it('should be able to get subdirectory object', async () => {
+    const cachedData = await getFromFile('testDir/testSubDir/testKey');
+    assert.ok(isEqual(cachedData, data));
+  });
+
   after(async() => {
     await unlink(path.join(testCacheDirectory, 'getCacheTest.json'));
     await unlink(path.join(testCacheDirectory, 'customPath', 'getCacheTest.json'));
+    await unlink(path.join(testCacheDirectory, 'testDir', 'testSubDir', 'testKey.json'));
   });
 });
