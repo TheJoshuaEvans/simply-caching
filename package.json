@@ -1,6 +1,6 @@
 {
   "name": "simply-caching",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Super simple in memory and file-based caching",
   "main": "index.js",
   "engines": {
