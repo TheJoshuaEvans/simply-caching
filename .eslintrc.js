@@ -1,13 +1,9 @@
 module.exports = {
   'env': {
     'browser': true,
-    'es2020': true,
-    'node': true
+    'node': true,
+    'es2022': true
   },
-  'plugins': [
-    'babel'
-  ],
-  'parser': 'babel-eslint',
   'parserOptions': {
     'sourceType': 'script'
   },
@@ -27,7 +23,6 @@ module.exports = {
     'semi': [ 'error', 'always' ],
     'prefer-const': [ 'error' ],
     'eol-last': [ 'error', 'always' ],
-    'strict': [ 'error', 'safe' ],
     'require-atomic-updates': 0
   }
 };
